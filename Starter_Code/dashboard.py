@@ -15,8 +15,12 @@ map_box_api = os.getenv("mapbox")
 px.set_mapbox_access_token(map_box_api)
 
 # Import the necessary CSVs to Pandas DataFrames
-# YOUR CODE HERE!
-
+# census data df
+file_path = Path("Data/sfo_neighborhoods_census_data.csv")
+sfo_data = pd.read_csv(file_path, index_col="year")
+# coordinates df
+geo = pd.read_csv('Data/neighborhoods_coordinates.csv')
+geo = geo.rename(columns={'Neighborhood' : 'neighborhood'})
 
 '''
 ## Streamlit Visualizations
