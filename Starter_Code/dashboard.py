@@ -8,7 +8,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import holoviews as hv
+from holoviews import opts
 hv.extension('bokeh', logo=False)
+from bokeh.plotting import figure, show
 
 # Read the Mapbox API key
 load_dotenv('api.env')
@@ -37,7 +39,6 @@ geo = geo.rename(columns={'Neighborhood' : 'neighborhood'})
 #Note: Remove any `.show()` lines from the code. We want to return the plots instead of showing them. The Streamlit dashboard will then display the plots.
 
 
-# Define Panel Visualization Functions
 # Define Panel Visualization Functions
 def housing_units_per_year():
     """Housing Units Per Year."""
@@ -81,32 +82,39 @@ def average_sales_price():
 def average_sqft_price_by_neighborhood():
     neigh = sfo_data.reset_index()
     neigh = neigh.groupby(['year', 'neighborhood']).mean()
-    return neigh.hvplot.line(x='year', y='sale_price_sqr_foot', groupby='neighborhood')
+    render = neigh.hvplot.line(x='year', y='sale_price_sqr_foot', groupby='neighborhood')
+    render = hv.render(render, backend='bokeh')
+    return render
 
 
 
 def gross_rent_by_neighborhood():
     neigh = sfo_data.reset_index()
     neigh = neigh.groupby(['year', 'neighborhood']).mean()
-    return neigh.hvplot.line(x='year', y='gross_rent', groupby='neighborhood')
-
+    render = neigh.hvplot.line(x='year', y='gross_rent', groupby='neighborhood')
+    render = hv.render(render, backend='bokeh')
+    return render
 
 def top_most_expensive_neighborhoods():
     top10 = sfo_data.groupby(['neighborhood']).mean().reset_index()
     top10 = top10.sort_values('sale_price_sqr_foot', ascending=False)
     top10 = top10.head(10).reset_index().drop(columns='index')
-    return top10.hvplot.bar(x='neighborhood', y='sale_price_sqr_foot').opts(
+    render = top10.hvplot.bar(x='neighborhood', y='sale_price_sqr_foot').opts(
     xlabel='Neighborhood',
     ylabel='Average Price per Square Foot',
     title='Top 10 Neighborhoods by Average Price per Square Foot',
     xrotation=45
     )
+    render = hv.render(render, backend='bokeh')
+    return render
 
 def comparison_of_rent_and_sqrft_by_neighborhood():
     neigh = sfo_data.reset_index()
     neigh = neigh.groupby(['year', 'neighborhood']).mean()   
     side_x_side = ['gross_rent', 'sale_price_sqr_foot']
-    return neigh.hvplot.bar(x='year', y=side_x_side, groupby='neighborhood', ylabel='Num Housing Units', xlabel='Neighborhood Cost Metrics', rot=90)
+    render = neigh.hvplot.bar(x='year', y=side_x_side, groupby='neighborhood', ylabel='Num Housing Units', xlabel='Neighborhood Cost Metrics', rot=90)
+    render = hv.render(render, backend='bokeh')
+    return render
     
     
 def parallel_coordinates():
@@ -174,12 +182,55 @@ def sunburst():
 # Start Streamlit App
 st.title('San Francisco Real Estate Analysis')
 
-tab1, tab2 = st.tabs(['Housing Units Per Year', 'Average Gross Rent'])
-#tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10
-with tab1:
-    st.header('Housing Units Per Year')
-    st.pyplot(housing_units_per_year())
+# Define list of pages
+pages = ['Housing Units Per Year', 'Average Gross Rent', 'Average Sales Price', 'Average Square Ft Price by Neighborhood', 'Gross Rent by Neighborhood', 'Top 10 Most Expensive Neighborhoods', 'Comparing Rent and Sqft Prices by Neighborhood', 'Parallel Categories', 'Parallel Coordinates', 'Sunburst Chart', 'Neighborhood Map']
+st.sidebar.title('Select a Page to Show')
+selected_page = st.sidebar.selectbox('Select Chart', pages)
+
+
     
-with tab2:
-    st.header('Average Gross Rent')
-    st.pyplot(average_gross_rent().figure)
+# Create a function to render the Plotly graphs
+if selected_page == "Housing Units Per Year":
+    st.header(selected_page)
+    fig, ax = plt.subplots()
+    ax = housing_units_per_year()
+    st.pyplot(fig)
+elif selected_page == "Average Gross Rent": 
+    st.header(selected_page)
+    fig, ax = plt.subplots()
+    ax = average_gross_rent()
+    st.pyplot(fig)
+elif selected_page == 'Average Sales Price':
+    st.header(selected_page)
+    fig, ax = plt.subplots()
+    ax = average_sales_price()
+    st.pyplot(fig)
+elif selected_page == 'Average Square Ft Price by Neighborhood':
+    st.header(selected_page)
+    fig = average_sqft_price_by_neighborhood()
+    st.bokeh_chart(fig)
+elif selected_page == 'Gross Rent by Neighborhood':
+    st.header(selected_page)
+    st.bokeh_chart(gross_rent_by_neighborhood())
+elif selected_page == 'Top 10 Most Expensive Neighborhoods':
+    st.header(selected_page)
+    st.bokeh_chart(top_most_expensive_neighborhoods())
+elif selected_page == 'Comparing Rent and Sqft Prices by Neighborhood':
+    st.header(selected_page)
+    st.bokeh_chart(comparison_of_rent_and_sqrft_by_neighborhood())
+elif selected_page == 'Parallel Categories':
+    st.header(selected_page)
+    fig = parallel_categories()
+    st.plotly_chart(fig)
+elif selected_page == 'Parallel Coordinates':
+    st.header(selected_page)
+    fig = parallel_coordinates()
+    st.plotly_chart(fig)
+elif selected_page == 'Sunburst Chart':
+    st.header(selected_page)
+    fig = sunburst()
+    st.plotly_chart(fig)
+elif selected_page == 'Neighborhood Map':
+    st.header(selected_page)
+    fig = neighborhood_map()
+    st.plotly_chart(fig)
