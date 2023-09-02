@@ -22,4 +22,4 @@ Hvplot charts are interactive in python but not in streamlit. These charts allow
 ![Parallel Categories](Images/Parallel_Categories.png)
 Plotly express charts are interactive in the dashboard; you can drag each column left and right to find correlations.
 
-The dashboard is built by defining functions that output each plot, and then selectively calling each function when the name of the plot is selected in the sidebar dropdown.
+The dashboard is built by defining functions that output each plot, and then selectively calling each function when the name of the plot is selected in the sidebar dropdown. Types of plots include pandas plots, matplotlib, hvplots, and plotly express. Open rental_analysis.ipynb if you want to see all of the work.
